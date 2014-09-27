@@ -6,31 +6,6 @@
 
 class DrupalToolKit {
 
-  #################
-  ##    FLAGS    ##
-  #################
-
-  /**
-   * Give the users that has flagged a entity.
-   * This is a wrapper of flag_get_entity_flags
-   * @see flag_get_entity_flags().
-   *
-   * @param  $entity_type
-   *         The type of entity that will be checked for users. Usually 'node'
-   * @param  $entity_id
-   *         Entity Id that we're checking.
-   * @param  $flag_name (optional)
-   *         Flag type.
-   */
-  public static function getUsersFlaggedContent($entity_type, $entity_id, $flag_name = NULL) {
-    $users_flagged = array();
-    // Flag module isn't a dependency, we've to be sure that it's enabled.
-    if (module_exists('flag')) {
-      $users_flagged = flag_get_entity_flags($entity_type, $entity_id, $flag_name);
-    }
-    return $users_flagged;
-  }
-
   ##################
   ##   TAXONOMY   ##
   ##################
@@ -107,6 +82,10 @@ class DrupalToolKit {
     return $terms;
   }
 
+  ##############
+  ##   USER   ##
+  ##############
+
   /**
    * @breaf Retrieve data from user instead of doing a complete loading of the
    *        user entity
@@ -137,7 +116,29 @@ class DrupalToolKit {
     return $query->execute()->fetchObject();
   }
 
-public static function getNodeTitle($nid) {
+  /**
+   * @brief This function return the list of uids of all the user with role
+   * 'administrator'
+   * @return The list of uids
+   */
+  public static function getUidsByRole($role) {
+    //Select the uids
+    $query = db_select('users', 'u');
+    $query->fields('u', array('uid'));
+    $query->leftJoin('users_roles', 'ur', 'ur.uid = u.uid');
+    $query->leftJoin('role', 'r', 'r.rid = ur.rid ');
+    $query->condition('r.name', $role);
+
+    $results = $query->execute()->fetchAllAssoc('uid');
+
+    return $results;
+  }
+
+  ##############
+  ##   NODE   ##
+  ##############
+
+  public static function getNodeTitle($nid) {
     if (module_exists('title')) {
       global $language;
       // If title module exist get the translated title:
@@ -174,66 +175,4 @@ public static function getNodeTitle($nid) {
 
     return $query;
   }
-
-  /**
-   * @brief Retrieve the number of people that a user given is following
-   * @return The number of followings
-   */
-  public static function getFollowingCount($uid) {
-    //Get the fid for follow_user machine name
-    $query = db_select('flag', 'f');
-    $query->fields('f', array('fid'));
-    $query->condition('name', 'follow_user');
-    $fid = $query->execute()->fetchField(0);
-
-    $query = db_select('flagging', 'f');
-    $query->fields('f', array('flagging_id'));
-    $query->condition('fid', $fid);
-    $query->condition('uid', $uid);
-
-    $count = $query->execute()->rowCount();
-
-    return $count;
-  }
-
-  /**
-   * @brief Retrieve the number of followers of a given user
-   * @return The number of followers
-   */
-  public static function getFollowersCount($uid) {
-    //Get the fid for follow_user machine name
-    $query = db_select('flag', 'f');
-    $query->fields('f', array('fid'));
-    $query->condition('name', 'follow_user');
-    $fid = $query->execute()->fetchField(0);
-
-    $query = db_select('flagging', 'f');
-    $query->fields('f', array('flagging_id'));
-    $query->condition('fid', $fid);
-    $query->condition('entity_id', $uid);
-
-    $count = $query->execute()->rowCount();
-
-    return $count;
-  }
-
-  /**
-   * @brief This function return the list of uids of all the user with role
-   * 'administrator'
-   * @return The list of uids
-   */
-  public static function getUidsByRole($role) {
-    //Select the uids
-    $query = db_select('users', 'u');
-    $query->fields('u', array('uid'));
-    $query->leftJoin('users_roles', 'ur', 'ur.uid = u.uid');
-    $query->leftJoin('role', 'r', 'r.rid = ur.rid ');
-    $query->condition('r.name', $role);
-
-    $results = $query->execute()->fetchAllAssoc('uid');
-
-    return $results;
-  }
-
-
 }
