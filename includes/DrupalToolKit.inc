@@ -54,7 +54,7 @@ class DrupalToolKit {
       if (!empty($term_name)) {
         $query->condition('t.name', db_like($term_name) . '%', 'LIKE');
       }
-      $results = $query->range(0,4)
+      $results = $query->range(0, 4)
         ->execute();
 
       foreach ($results as $key => $term) {
@@ -96,7 +96,7 @@ class DrupalToolKit {
         $query_level3->condition('t3.name', db_like($term_name) . '%', 'LIKE');
       }
 
-      $results = $query_level3->range(0,4)
+      $results = $query_level3->range(0, 4)
         ->execute();
 
       foreach ($results as $key => $term) {
