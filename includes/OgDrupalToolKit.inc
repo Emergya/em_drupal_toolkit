@@ -1,15 +1,24 @@
 <?php
 
 /**
- * @filesize( )
+ * @file File with the Class definition OgDrupalToolKit.
  */
 
+/**
+ * Contains several methods to be used with Organic groups module.
+ *
+ * @package em_drupal_toolkit
+ */
 class OgDrupalToolKit {
 
   /**
-   * @brief Get the number of members of a group.
-   * @details Get the number of members of a group.
-   * @return Members count.
+   * Count the number of memberships of a concrente Group.
+   *
+   * Returns the number of members of a concrete group with ACTIVE status.
+   *
+   * @param  string $entity_type Og membership type, normally 'user'.
+   * @param  int $gid Group id to check.
+   * @return int Membership count
    */
   public static function countMemberships($entity_type, $gid) {
     $query = new EntityFieldQuery();
@@ -27,6 +36,17 @@ class OgDrupalToolKit {
     return $result;
   }
 
+  /**
+   * Get the users members with a certain role in a group.
+   *
+   * Return a Query object with info about users with certain role in a group.
+   *
+   * @param  string $group_type Group type to check, generally 'node'.
+   * @param  string $bundle     Bundle group to check, generally ToC group name.
+   * @param  int $gid Group entity id.
+   * @param  string $role_name Role to check.
+   * @return QueryObject that implements DatabaseStatementInterface with the result.
+   */
   public static function getUsersByRoleName($group_type, $bundle, $gid, $role_name) {
     $query_gid = og_is_group_default_access($group_type, $gid) ? 0 : $gid;
 
@@ -34,8 +54,7 @@ class OgDrupalToolKit {
     $query->innerJoin('og_role', 'ogr', 'ogur.rid = ogr.rid');
     $query->innerJoin('og_membership', 'ogm', 'ogur.uid = ogm.etid');
 
-    $rids = $query
-      ->fields('ogur', array('rid', 'uid'))
+    $query->fields('ogur', array('rid', 'uid'))
       ->fields('ogr', array('name'))
       ->condition('ogr.group_type', $group_type, '=')
       ->condition('ogr.group_bundle', $bundle, '=')
@@ -46,23 +65,26 @@ class OgDrupalToolKit {
       ->orderBy('rid')
       ->execute()
       ->fetchAllkeyed();
-      return $query->execute();
+
+    return $query->execute();
   }
 
   /**
-   * @brief Get the total number of contents of a Group.
-   *        - Entity_type : Entity type
-   *        - Bundle: Bundle
-   *        - Gid: Gid to search by
-   * @return Int with the total count.
+   * Get the total number of contents of a Group.
+   *
+   * @param  string $entity_type Group type to check, generally 'node'.
+   * @param  string $bundle Bundle group to check, generally ToC group name.
+   * @param  int $gid Group entity id.
+   * @return Int Total content count.
    */
   public static function countContentsByGroup($entity_type, $bundle, $gid) {
     $query = new EntityFieldQuery();
-    return $query->entityCondition('entity_type', $entity_type)
-                ->entityCondition('bundle', $bundle)
-                ->fieldCondition('og_group_ref', 'target_id', $gid, '=')
-                ->count()
-                ->execute();
+    $query->entityCondition('entity_type', $entity_type)
+      ->entityCondition('bundle', $bundle)
+      ->fieldCondition('og_group_ref', 'target_id', $gid, '=')
+      ->count();
+
+    return $query->execute();
   }
 }
 
