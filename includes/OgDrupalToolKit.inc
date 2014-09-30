@@ -54,7 +54,7 @@ class OgDrupalToolKit {
     $query->innerJoin('og_role', 'ogr', 'ogur.rid = ogr.rid');
     $query->innerJoin('og_membership', 'ogm', 'ogur.uid = ogm.etid');
 
-    $query->fields('ogur', array('rid', 'uid'))
+    $members =  $query->fields('ogur', array('rid', 'uid'))
       ->fields('ogr', array('name'))
       ->condition('ogr.group_type', $group_type, '=')
       ->condition('ogr.group_bundle', $bundle, '=')
@@ -63,10 +63,9 @@ class OgDrupalToolKit {
       ->condition('ogur.gid', $gid, '=')
       ->condition('ogm.state', OG_STATE_ACTIVE, '=')
       ->orderBy('rid')
-      ->execute()
-      ->fetchAllkeyed();
+      ->execute();
 
-    return $query->execute();
+    return $members;
   }
 
   /**
