@@ -40,7 +40,6 @@ class testOgDrupalToolKit extends DrupalWebTestCase {
       'title' => $this->randomName(32),
       'body' => array(LANGUAGE_NONE => array(array($this->randomName(64)))),
     );
-
     $content_node = $this->drupalCreateNode($content_settings);
     $content_wrapper = entity_metadata_wrapper('node', $content_node);
     $content_wrapper->{OG_AUDIENCE_FIELD}->set(array($group_node->nid));
@@ -49,6 +48,17 @@ class testOgDrupalToolKit extends DrupalWebTestCase {
     // Test the method countContentsByGroup:
     $contents_count = OgDrupalToolKit::countContentsByGroup('node', array('page'), $group_node->nid);
     $this->assertEqual($contents_count, 1, 'countContentsByGroup method works as expected');
+
+    // Generate group members:
+    $member1 = $this->drupalCreateUser();
+    $member2 = $this->drupalCreateUser();
+    og_group('node', $group_node->nid, array('entity' => $member1->uid));
+    og_group('node', $group_node->nid, array('entity' => $member2->uid));
+
+    // Test countMemberships method:
+    // There sould be 3 members 1 user that creates the groups and the previous 2 members.
+    $members_count = OgDrupalToolKit::countMemberships('user', $group_node->nid);
+    $this->assertEqual($members_count, 3, 'countMemberships method works as expected');
   }
 }
 
